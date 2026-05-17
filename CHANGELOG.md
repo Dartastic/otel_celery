@@ -1,0 +1,10 @@
+# Changelog
+
+## [0.1.0-beta.1-wip]
+
+### Added
+
+- Initial release.
+- `tracedCelery<T>(...)` — wraps a otel_celery call in a CLIENT-kind span
+  with vendor-specific attributes.
+- Zone-scoped suppression via `runWithoutCeleryInstrumentation()` / `Async()`.
