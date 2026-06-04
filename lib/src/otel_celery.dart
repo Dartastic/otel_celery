@@ -2,7 +2,6 @@
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
 import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
-import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_celery_suppression.dart';
 
@@ -54,48 +53,63 @@ Future<T> tracedCelery<T>({
   final t = tracer ?? OTel.tracerProvider().getTracer('otel_celery');
   final span = t.startSpan('celery $operation', kind: SpanKind.producer);
   try {
-    span.setStringAttribute('messaging.system', 'celery');
+    span.addAttributes(
+        OTel.attributes([OTel.attributeString('messaging.system', 'celery')]));
     final r = await invoke();
     final res = r.result;
     if (res != null) {
       if (res.broker != null) {
-        span.setStringAttribute('server.address', res.broker!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('server.address', res.broker!)]));
       }
       if (res.backend != null) {
-        span.setStringAttribute('celery.backend', res.backend!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('celery.backend', res.backend!)]));
       }
       if (res.queue != null) {
-        span.setStringAttribute('messaging.destination.name', res.queue!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('messaging.destination.name', res.queue!)]));
       }
       if (res.taskName != null) {
-        span.setStringAttribute('celery.task.name', res.taskName!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('celery.task.name', res.taskName!)]));
       }
       if (res.taskId != null) {
-        span.setStringAttribute('messaging.message.id', res.taskId!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('messaging.message.id', res.taskId!)]));
       }
       if (res.parentTaskId != null) {
-        span.setStringAttribute('celery.parent_task_id', res.parentTaskId!);
+        span.addAttributes(OTel.attributes([
+          OTel.attributeString('celery.parent_task_id', res.parentTaskId!)
+        ]));
       }
       if (res.retries != null) {
-        span.setIntAttribute('celery.retries', res.retries!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeInt('celery.retries', res.retries!)]));
       }
       if (res.eta != null) {
-        span.setStringAttribute('celery.eta', res.eta!);
+        span.addAttributes(
+            OTel.attributes([OTel.attributeString('celery.eta', res.eta!)]));
       }
       if (res.priority != null) {
-        span.setIntAttribute('messaging.message.priority', res.priority!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeInt('messaging.message.priority', res.priority!)]));
       }
       if (res.statusCode != null) {
-        span.setIntAttribute('http.response.status_code', res.statusCode!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeInt('http.response.status_code', res.statusCode!)]));
       }
       if (res.errorCode != null) {
-        span.setStringAttribute('celery.error.code', res.errorCode!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('celery.error.code', res.errorCode!)]));
       }
       final fail = res.errorCode != null ||
           (res.statusCode != null && res.statusCode! >= 400);
       if (fail) {
-        span.setStringAttribute(
-            ErrorResource.errorType.key, res.errorCode ?? 'celery.error');
+        span.addAttributes(OTel.attributes([
+          OTel.attributeString(
+              ErrorResource.errorType.key, res.errorCode ?? 'celery.error')
+        ]));
         span.setStatus(SpanStatusCode.Error, res.errorMessage);
       }
     }
